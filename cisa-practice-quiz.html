@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CISA Practice Quiz – 150 Questions</title>
+<style>
+:root {
+  --bg: #f5f6f2; --card: #ffffff; --text: #1c2a2d; --muted: #5d6d70; --line: #d9dfdc;
+  --accent: #0e6b6b; --accent-ink: #ffffff; --ok: #1d7a46; --ok-bg: #e3f3ea; --bad: #b0341f; --bad-bg: #f9e4df;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1a1c; --card: #172528; --text: #e5ecea; --muted: #9fb0b2; --line: #2b3d40;
+    --accent: #4fc0bb; --accent-ink: #0b1517; --ok: #62d28f; --ok-bg: #173325; --bad: #ff8d77; --bad-bg: #3b1f1a;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1a1c; --card: #172528; --text: #e5ecea; --muted: #9fb0b2; --line: #2b3d40;
+  --accent: #4fc0bb; --accent-ink: #0b1517; --ok: #62d28f; --ok-bg: #173325; --bad: #ff8d77; --bad-bg: #3b1f1a;
+}
+html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+main { max-width: 640px; margin: 0 auto; padding: 20px 16px 48px; }
+h1, h2 { font-family: Georgia, "Times New Roman", serif; font-weight: 700; line-height: 1.2; margin: 0 0 8px; }
+h1 { font-size: 30px; }
+h2 { font-size: 22px; }
+p { margin: 0 0 12px; }
+.muted { color: var(--muted); }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.btn {
+  display: block; width: 100%; padding: 14px 16px; border-radius: 10px; border: 1px solid var(--accent);
+  background: var(--accent); color: var(--accent-ink); font-weight: 600; text-align: center;
+}
+.btn.ghost { background: transparent; color: var(--accent); }
+.btn + .btn { margin-top: 10px; }
+.domains { display: grid; gap: 10px; margin: 20px 0; }
+.dom {
+  text-align: left; padding: 14px 16px; border-radius: 10px; border: 1px solid var(--line);
+  background: var(--card); display: flex; justify-content: space-between; gap: 12px; align-items: center;
+}
+.dom small { color: var(--muted); white-space: nowrap; }
+.top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 8px; font-size: 14px; color: var(--muted); }
+.bar { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; margin-bottom: 20px; }
+.bar > i { display: block; height: 100%; background: var(--accent); width: 0; transition: width .25s; }
+.q { font-size: 19px; line-height: 1.4; margin-bottom: 16px; font-weight: 600; }
+.opts { display: grid; gap: 10px; }
+.opt {
+  display: flex; gap: 12px; text-align: left; width: 100%; padding: 13px 14px;
+  border-radius: 10px; border: 1.5px solid var(--line); background: var(--card);
+}
+.opt .l { font-weight: 700; color: var(--accent); min-width: 18px; }
+.opt.ok { border-color: var(--ok); background: var(--ok-bg); }
+.opt.bad { border-color: var(--bad); background: var(--bad-bg); }
+.opt:disabled { cursor: default; }
+.fb { margin-top: 16px; padding: 14px 16px; border-radius: 10px; background: var(--card); border: 1px solid var(--line); }
+.fb strong.ok { color: var(--ok); } .fb strong.bad { color: var(--bad); }
+.nav { margin-top: 16px; }
+.score { font-family: Georgia, serif; font-size: 56px; font-weight: 700; line-height: 1; margin: 8px 0 4px; }
+.row { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; margin: 14px 0; font-size: 15px; }
+.row .bar { grid-column: 1 / -1; margin: 0; }
+.miss { padding: 14px 0; border-top: 1px solid var(--line); }
+.miss .q { font-size: 16px; margin-bottom: 8px; }
+.miss .yours { color: var(--bad); } .miss .right { color: var(--ok); }
+.tools { display: flex; justify-content: space-between; margin-top: 28px; font-size: 14px; }
+.tools button { background: none; border: 0; color: var(--muted); text-decoration: underline; padding: 6px 0; }
+@media (prefers-reduced-motion: reduce) { .bar > i { transition: none; } }
+</style>
+</head>
+<body>
+<main id="app"></main>
+
+<script>
+var DOMAINS = [
+  { id: 1, name: "Auditing Information Systems" },
+  { id: 2, name: "Governance and Management of IT" },
+  { id: 3, name: "Acquisition, Development and Implementation" },
+  { id: 4, name: "Operations and Business Resilience" },
+  { id: 5, name: "Protection of Information Assets" }
+];
+
+// [domain, question, [A,B,C,D], correctIndex, explanation]
+var RAW = [
+[1,"What should an IS auditor do FIRST when planning an audit?",["Develop the audit program","Define the audit scope and objectives","Perform control testing","Draft the audit report"],1,"Scope and objectives drive everything else in the audit."],
+[1,"What is the main benefit of a risk-based audit approach?",["It removes the need for sampling","It guarantees fraud detection","It focuses audit resources on the highest-risk areas","It shortens the final report"],2,"Risk-based means audit effort goes first to the areas with the highest risk."],
+[1,"Which evidence is the MOST reliable?",["A management representation letter","A system report provided by the auditee","Interview notes from the process owner","Confirmation obtained directly from an independent third party"],3,"Independent, external evidence is the most reliable."],
+[1,"Which situation MOST impairs an auditor's independence?",["Auditing a department the auditor has never worked with","Auditing a control the auditor designed","Using an external specialist","Reporting to the audit committee"],1,"Auditing your own design is a self-review threat."],
+[1,"Attribute sampling is MOST appropriate for:",["Estimating the dollar value of errors","Testing whether a control is present and operating","Detecting a single critical fraud","Analyzing a full population"],1,"Attribute sampling tests compliance: the control either occurred or it did not."],
+[1,"Management decides to accept a significant risk the auditor reported. The auditor should:",["Remove the finding from the report","Implement a compensating control","Ensure the acceptance is made and documented by appropriate senior management","Escalate to regulators"],2,"Risk acceptance must come from the appropriate level of management, and be documented."],
+[1,"What is the PRIMARY advantage of computer-assisted audit techniques (CAATs)?",["They replace professional judgment","They can analyze entire populations of data","They eliminate audit risk","They need no data validation"],1,"CAATs can test whole populations instead of small samples."],
+[1,"During an audit, the auditor suspects fraud. What should the auditor do?",["Confront the suspected employee","Ignore it if the amount is immaterial","Expand testing until fraud is proven","Report to the appropriate level of management or the audit committee per policy"],3,"Report through the proper channels; do not investigate or confront alone."],
+[1,"What is the key benefit of continuous auditing?",["Fewer audit staff are needed","It reduces the time between a control failure and its detection","It replaces management monitoring","It eliminates sampling risk"],1,"It shortens the gap between a failure and its detection."],
+
+[2,"The PRIMARY role of an IT strategy committee is to:",["Approve user access requests","Manage daily operations","Select hardware vendors","Ensure IT strategy aligns with business strategy"],3,"Strategy alignment is the committee's purpose."],
+[2,"Which is the BEST indicator that IT is aligned with the business?",["The IT budget is below industry average","The IT strategic plan is approved and linked to the business plan","IT staff turnover is low","Uptime exceeds 99%"],1,"An approved plan linked to the business plan shows alignment."],
+[2,"An organization outsources payroll processing. Who retains ultimate accountability for payroll data protection?",["The service provider","The service provider's auditor","The organization's management","The regulator"],2,"You can outsource the task, not the accountability."],
+[2,"Which combination of duties is MOST incompatible?",["Application programmer and production data access","Help desk and network operations","Database administrator and backup operator","Business analyst and tester"],0,"Programmers should not have access to production data or systems."],
+[2,"The risk remaining after controls are applied is called:",["Inherent risk","Residual risk","Detection risk","Control risk"],1,"Residual risk is what is left after controls."],
+[2,"Policies should be approved by:",["IT staff","Internal audit","Senior management","External consultants"],2,"Senior management owns and approves policy."],
+[2,"The board's primary responsibility in IT governance is to:",["Set direction and oversee that IT delivers business value","Configure systems","Perform risk assessments","Write procedures"],0,"The board sets direction and oversees value delivery."],
+[2,"A maturity model rating of \"defined\" generally means processes are:",["Ad hoc","Optimized through automation","Documented, standardized, and communicated","Not yet identified"],2,"Defined means documented, standardized and communicated."],
+[2,"An IT balanced scorecard is MOST useful for:",["Measuring IT performance across multiple perspectives, not only financial","Calculating ROI only","Detecting intrusions","Testing backups"],0,"It measures performance from several perspectives, not just financial."],
+
+[3,"What is the MOST common reason projects fail?",["Insufficient hardware","Lack of senior management support and user involvement","Too many testers","Excess documentation"],1,"Management support and user involvement are the top success factors."],
+[3,"The feasibility study is performed during which phase?",["Project initiation","Testing","Implementation","Maintenance"],0,"Feasibility is assessed at initiation."],
+[3,"Which testing verifies that newly developed modules work together?",["Unit testing","Regression testing","Integration testing","Stress testing"],2,"Integration testing checks that modules work together."],
+[3,"Who should perform user acceptance testing (UAT)?",["Developers","End users","Auditors","Database administrators"],1,"The users who will rely on the system perform UAT."],
+[3,"What is the BEST way to verify data conversion completeness?",["Reconcile record counts and control totals between old and new systems","Spot-check one record","Ask the vendor to confirm","Review the conversion script only"],0,"Reconciling counts and control totals proves completeness."],
+[3,"A post-implementation review is MAINLY performed to:",["Fix defects","Train users","Assess whether project objectives and benefits were achieved","Approve the budget"],2,"A PIR checks whether the expected benefits were realized."],
+[3,"Which is a risk of a direct (big bang) changeover?",["High cost of running two systems","Duplicate data entry","Slow user adoption","No fallback if the new system fails"],3,"With a big bang cutover there is no fallback if the new system fails."],
+
+[4,"Recovery time objective (RTO) is the:",["Maximum acceptable data loss","Cost of recovery","Maximum tolerable time to restore a process after disruption","Time to detect an incident"],2,"RTO is the time-based tolerance for restoring a process."],
+[4,"Recovery point objective (RPO) MOST directly determines:",["Backup frequency","Hot site selection","Staffing levels","Insurance coverage"],0,"RPO is acceptable data loss, so it drives how often you back up."],
+[4,"What is the FIRST step in developing a business continuity plan?",["Select a recovery site","Test the plan","Perform a business impact analysis","Train staff"],2,"The BIA comes first; it tells you what matters most."],
+[4,"Which recovery site offers the SHORTEST recovery time?",["Cold site","Warm site","Reciprocal agreement","Hot site"],3,"A hot site is ready to run almost immediately."],
+[4,"How should an emergency change be handled?",["Skip documentation entirely","Implement it, then document and approve it retroactively","Delay until the next scheduled release","Let the developer approve it alone"],1,"Emergency changes still need documentation and approval, after the fact."],
+[4,"Malware is found on a production server. What should be done FIRST?",["Isolate the affected system to contain the spread","Wipe the server","Notify the media","Restore from backup"],0,"Contain first, then investigate and recover."],
+[4,"The goal of problem management is to:",["Restore service quickly","Log all calls","Identify and remove the root cause of incidents","Assign tickets"],2,"Problem management removes the root cause; incident management restores service."],
+[4,"A differential backup copies:",["Everything every time","Only data changed since the last incremental","Data changed since the last full backup","Only deleted files"],2,"Differential means everything changed since the last full backup."],
+[4,"What is the BEST evidence that a BCP is effective?",["The plan is thick and detailed","Management signed it","It was written by experts","Results of recent, successful tests"],3,"Successful test results are the best evidence."],
+[4,"RAID 1 provides:",["Striping without redundancy","Disk mirroring for redundancy","Encryption","Faster backups"],1,"RAID 1 is mirroring."],
+[4,"Capacity management is MAINLY intended to:",["Reduce licensing costs","Monitor user behavior","Ensure resources meet current and future demand","Track help desk calls"],2,"It makes sure resources meet current and future demand."],
+[4,"SLA monitoring is MOST effective when:",["The provider self-reports only","Measurable metrics are defined and independently reviewed","Reviewed annually","Based on verbal agreement"],1,"Measurable metrics with independent review make monitoring effective."],
+[4,"Which log review BEST detects unauthorized changes to production?",["Help desk tickets","Email logs","Reconciliation of change logs against approved change requests","Printer logs"],2,"Compare what actually changed against what was approved."],
+
+[5,"To ensure confidentiality in asymmetric encryption, the sender encrypts with the:",["Sender's private key","Recipient's public key","Sender's public key","Recipient's private key"],1,"Only the recipient's private key can decrypt what their public key encrypted."],
+[5,"A digital signature provides:",["Integrity and non-repudiation","Confidentiality only","Availability","Anonymity"],0,"Signing gives integrity and non-repudiation."],
+[5,"The BEST firewall rule philosophy is:",["Default allow","Allow all internal traffic","Default deny, permit only what is required","Block only known threats"],2,"Default deny, and allow only what is required."],
+[5,"What is the BEST control against phishing?",["Bigger mailboxes","User awareness training with technical filters","Longer passwords only","Disabling all email"],1,"Combine awareness training with technical controls."],
+[5,"An intrusion prevention system (IPS) differs from an IDS because it:",["Only logs events","Is cheaper","Does not inspect traffic","Can actively block malicious traffic"],3,"An IPS can block, while an IDS detects and alerts."],
+[5,"The principle of least privilege means users have:",["Only the access needed to do their jobs","Admin rights for convenience","Access to all non-sensitive data","Shared accounts"],0,"Access is limited to what the job requires."],
+[5,"Which authentication is STRONGEST?",["Long password","Security questions","Multi-factor authentication","Shared token"],2,"Multiple factors beat any single factor."],
+[5,"The BEST protection against SQL injection is:",["Longer database passwords","Parameterized queries with input validation","Firewall logging","Daily backups"],1,"Parameterized queries plus input validation."],
+[5,"Who is responsible for classifying data?",["Data owner","System administrator","Security guard","Data custodian"],0,"The data owner classifies; the custodian protects."],
+[5,"A certificate revocation list (CRL) is used to:",["Encrypt data","Generate keys","Identify certificates that are no longer valid","Store passwords"],2,"A CRL lists revoked certificates."],
+[5,"For a biometric system, which is the MOST serious concern for security?",["False rejection rate","Enrollment time","Cost","False acceptance rate"],3,"A false acceptance lets an unauthorized person in."],
+[5,"What is the BEST control for the risk of lost laptops exposing data?",["Full-disk encryption","Cable locks","Asset tags","Warranty"],0,"Encryption protects the data even if the device is lost."],
+[1,"The audit charter should be approved by:",["The IT manager","The external auditor","Process owners","The board or audit committee"],3,"The charter defines audit authority, so it is approved at the highest level."],
+[1,"To understand an unfamiliar business process, an auditor should FIRST:",["Test the key controls","Review documentation and perform a walkthrough","Send out a questionnaire only","Interview the CEO"],1,"Understanding the process comes before testing anything."],
+[1,"The risk that a material error exists before any controls are considered is:",["Control risk","Detection risk","Residual risk","Inherent risk"],3,"Inherent risk assumes no controls at all."],
+[1,"The risk that the auditor's procedures fail to find a material error is:",["Inherent risk","Control risk","Detection risk","Residual risk"],2,"Detection risk is the risk the auditor misses an error."],
+[1,"The risk that a control will not prevent or detect an error in time is:",["Control risk","Inherent risk","Detection risk","Sampling risk"],0,"That is control risk."],
+[1,"Stratified sampling is used to:",["Select every nth item","Select items with no grouping","Divide the population into groups to reduce variance","Test every item"],2,"Grouping similar items reduces variability in the sample."],
+[1,"Substantive testing is MAINLY designed to:",["Test whether controls operate","Evaluate policy wording","Check auditor independence","Gather evidence on the accuracy, completeness and validity of data"],3,"Compliance tests check controls; substantive tests check the data itself."],
+[1,"Compliance tests show that controls are weak. The auditor should:",["Reduce substantive testing","Rely on the controls","Increase substantive testing","Stop the audit"],2,"Weak controls mean more substantive testing is needed."],
+[1,"Findings are discussed with the auditee before the report is issued MAINLY to:",["Negotiate the rating","Confirm factual accuracy","Get approval of the opinion","Delay the report"],1,"The goal is to confirm the facts are correct, not to negotiate the conclusion."],
+[1,"When relying on the work of another expert, the auditor should:",["Accept it without review","Ignore it","Assess the expert's competence, independence and the work performed","Hand the opinion over to the expert"],2,"The auditor stays responsible for the opinion."],
+[1,"A critical control weakness is found during fieldwork. The auditor should:",["Wait for the final report","Fix the control","Ignore it until follow-up","Communicate it promptly to management"],3,"Significant issues are reported promptly, not held for the final report."],
+[1,"Which technique is BEST for detecting duplicate payments?",["CAATs run on the payment data","Interviews","Policy review","Walkthrough"],0,"Data analysis across the full population finds duplicates."],
+[1,"A key benefit of control self-assessment (CSA) is that it:",["Replaces the audit function","Gives an independent opinion","Increases process owners' ownership of controls and surfaces risks early","Always lowers cost"],2,"CSA builds ownership and early risk awareness; it does not replace audit."],
+[1,"A control that identifies an error after it has occurred is:",["Preventive","Corrective","Deterrent","Detective"],3,"Detective controls find problems after the fact."],
+[1,"An IS audit generally provides:",["Absolute assurance","Reasonable assurance","No assurance","A fraud-free guarantee"],1,"Audits give reasonable, not absolute, assurance."],
+[1,"What is the BEST way to make sure audit findings are addressed?",["Penalize the auditee","Reissue the report","Follow up on management's action plans","Wait for the next audit"],2,"Follow-up confirms that agreed actions were taken."],
+[1,"Information gained during an audit should be:",["Shared with other departments","Posted for peers","Published","Kept confidential and used only for audit purposes"],3,"Auditors must protect confidentiality."],
+[1,"If the required confidence level of a sample increases, the sample size will:",["Decrease","Stay the same","Increase","Become zero"],2,"Higher confidence needs a larger sample."],
+[2,"An IT steering committee should consist of:",["IT staff only","Auditors","Vendors","Senior business and IT management"],3,"It needs both business and IT leaders to set priorities."],
+[2,"Data entry duties should be segregated from:",["Printing reports","Authorizing transactions","Attending training","Resetting one's own password"],1,"The person who enters data should not authorize it."],
+[2,"COBIT is primarily a framework for:",["Network protocols","Encryption","Governance and management of enterprise IT","Project estimating"],2,"COBIT is ISACA's IT governance and management framework."],
+[2,"ITIL focuses on:",["Software coding","IT service management","Auditing standards","Cryptography"],1,"ITIL is a set of IT service management practices."],
+[2,"ISO/IEC 27001 specifies requirements for:",["An information security management system","Project management","A service desk","Software testing"],0,"It is the ISMS standard."],
+[2,"The FIRST step in risk management is to:",["Implement controls","Accept the risk","Monitor","Identify assets, threats and vulnerabilities"],3,"You cannot assess or treat risks you have not identified."],
+[2,"Buying insurance against a loss is an example of risk:",["Avoidance","Mitigation","Transfer","Acceptance"],2,"Insurance transfers the financial impact."],
+[2,"Annual loss expectancy (ALE) is calculated as:",["Single loss expectancy x annual rate of occurrence","Asset value x 12","Single loss expectancy / annual rate of occurrence","Threat x control"],0,"ALE = SLE x ARO."],
+[2,"Which clause is MOST important to an auditor in an outsourcing contract?",["Office location","Right to audit","Vendor logo use","Staff dress code"],1,"Without a right-to-audit clause, the provider cannot be independently assessed."],
+[2,"Before outsourcing a function, management should FIRST:",["Sign the contract","Select the cheapest vendor","Define requirements and perform due diligence","Release current staff"],2,"Requirements and due diligence come before vendor selection."],
+[2,"Mandatory vacations help to:",["Reduce payroll","Improve morale only","Speed up processing","Detect irregularities when someone else performs the duties"],3,"Someone else covering the role can expose fraud."],
+[2,"When an employee is terminated, system access should be removed:",["Within a month","Immediately upon termination","At the next audit","After the exit interview next week"],1,"Delays create an unauthorized access risk."],
+[2,"The main benefit of enterprise architecture is to:",["Reduce documentation","Increase hardware","Align IT assets and design with business needs","Remove standards"],2,"It aligns IT structure with the business and reduces complexity."],
+[2,"An IT strategic plan typically covers:",["One day","One week","One hour","Several years, typically 3 to 5"],3,"Strategic plans are long term; tactical plans are shorter."],
+[2,"Which document gives step-by-step instructions for a task?",["Policy","Standard","Guideline","Procedure"],3,"Procedures describe how to perform a task."],
+[2,"Which document is mandatory and sets specific requirements?",["Standard","Guideline","Charter","Memo"],0,"Standards are mandatory; guidelines are recommended."],
+[2,"IT portfolio management primarily ensures that:",["Typing is faster","Cost is always lowest","Vendors are locked in","IT investments are prioritized by business value"],3,"It prioritizes investments by value and risk."],
+[2,"In a maturity model, the highest level indicates processes that are:",["Ad hoc","Repeatable only","Continuously improved and optimized","Undefined"],2,"The top level is optimized and continuously improving."],
+[3,"Which approach delivers working software in short iterations with frequent user feedback?",["Waterfall","Big bang","Agile","Parallel run"],2,"That is the core of agile development."],
+[3,"Function point analysis is used to:",["Test code","Estimate software size","Encrypt data","Schedule backups"],1,"It measures software size from functionality delivered."],
+[3,"The critical path in a project is:",["The cheapest path","The shortest path","The riskiest tasks","The longest chain of dependent tasks, which sets the minimum duration"],3,"Any delay on the critical path delays the project."],
+[3,"Running the old and new systems at the same time to compare results is:",["Parallel testing","A pilot","Unit testing","Regression testing"],0,"That is parallel testing."],
+[3,"Regression testing is performed to:",["Test a brand-new module","Verify that changes did not break existing functions","Measure performance","Install software"],1,"It confirms existing functionality still works after a change."],
+[3,"Testing without knowledge of the internal code is:",["White-box testing","Unit testing","Code review","Black-box testing"],3,"Black-box tests inputs and outputs only."],
+[3,"What is the BEST way to make sure a system meets user needs?",["Developer judgment","Vendor assurance","User involvement with formal requirements sign-off","Longer testing only"],2,"Users must be involved in and sign off on requirements."],
+[3,"Source code escrow protects the customer when:",["Hardware fails","The vendor goes out of business","Passwords are lost","The network is down"],1,"The customer can still obtain the code to maintain the software."],
+[3,"Scope creep is BEST controlled by:",["Ignoring requests","Adding staff","Skipping testing","Formal change control"],3,"Changes must be evaluated and approved formally."],
+[3,"Program changes should be moved from test to production by:",["The developer","A separate librarian or release function","The tester","The end user"],1,"Developers should not move their own code into production."],
+[3,"Input validation (edit) checks are:",["Detective controls","Corrective controls","Preventive controls","Compensating controls"],2,"They stop bad data before it is accepted."],
+[4,"Which RAID level uses striping with parity?",["RAID 0","RAID 1","RAID 5","JBOD"],2,"RAID 5 stripes data and parity across disks."],
+[4,"An incremental backup copies:",["Everything every time","Data changed since the last backup of any type","Data changed since the last full backup","Deleted files"],1,"Incremental is since the last backup; differential is since the last full."],
+[4,"Offsite backup storage should be:",["In the same building","At an employee's home","Under a manager's desk","Geographically separate, with similar security"],3,"It must survive the same disaster as the primary site, and be protected equally."],
+[4,"A site with hardware and connectivity ready but needing data restored is a:",["Cold site","Warm site","Hot site","Reciprocal agreement"],1,"That describes a warm site."],
+[4,"The business continuity plan should be approved by:",["Senior management","Developers","Vendors","Auditors"],0,"Senior management owns and approves it."],
+[4,"The RTO should be:",["Longer than the maximum tolerable downtime","Unrelated to the maximum tolerable downtime","Shorter than the maximum tolerable downtime","Equal to the cost of recovery"],2,"Recovery must finish before the tolerable downtime is exceeded."],
+[4,"Recovery priorities are BEST determined by:",["IT staff preference","Vendor advice","System age","The business impact analysis"],3,"The BIA ranks processes by business impact."],
+[4,"The primary goal of incident management is to:",["Find the root cause","Restore normal service as quickly as possible","Approve changes","Plan capacity"],1,"Root cause is problem management's job."],
+[4,"Changes to production should be:",["Made by anyone","Applied immediately","Authorized, tested and approved before implementation","Documented only if large"],2,"Every change goes through authorization and testing."],
+[4,"Patch management should include:",["Deploying immediately everywhere","Ignoring patches until audit","Waiting a year","Testing in a non-production environment first"],3,"Test patches first to avoid breaking production."],
+[4,"Which control BEST ensures batch processing is complete?",["A visual check","Reconciliation of batch control totals","More RAM","Ignoring exceptions"],1,"Control totals confirm all records were processed."],
+[4,"Referential integrity ensures that:",["Data is encrypted","Queries are fast","Backups are taken","Foreign keys match existing primary keys"],3,"It prevents orphaned records."],
+[4,"Database normalization reduces:",["Security","Data redundancy","Network latency","Backup time"],1,"Normalization removes duplicated data."],
+[4,"Database administrator activity should be:",["Unrestricted","Unmonitored","Logged and independently reviewed","Deleted after a week"],2,"DBAs have powerful access, so their actions need independent oversight."],
+[4,"Routers operate mainly at which OSI layer?",["Layer 2 (data link)","Layer 4 (transport)","Layer 7 (application)","Layer 3 (network)"],3,"Routers forward packets at the network layer."],
+[4,"Which protocol is connection-oriented?",["UDP","TCP","ICMP","ARP"],1,"TCP sets up connections and guarantees delivery."],
+[4,"A VPN primarily provides:",["Faster internet","Spam filtering","A secure encrypted tunnel over a public network","Backups"],2,"It protects traffic crossing untrusted networks."],
+[4,"Switches operate mainly at which OSI layer?",["Layer 1","Layer 7","Layer 5","Layer 2"],3,"Switches forward frames at the data link layer."],
+[4,"Single points of failure are BEST mitigated by:",["Redundant components","More users","Longer cables","A bigger logo"],0,"Redundancy removes the single point."],
+[4,"The MOST significant risk of virtualization is that:",["Cost is lower","Power use is lower","Compromise of the hypervisor can affect all virtual machines","There are fewer servers"],2,"One weak layer exposes every guest."],
+[4,"In a SaaS model, the customer remains responsible for:",["The physical data center","Its data and user access management","The hypervisor","Network hardware"],1,"The provider runs the stack; the customer owns its data and access."],
+[4,"A SOC 2 Type II report tests:",["Control design at a single point in time","Financial statements","Nothing","Operating effectiveness of controls over a period"],3,"Type II covers operating effectiveness over time."],
+[4,"The help desk's primary function is to:",["Design systems","Test code","Be the single point of contact for logging incidents","Audit users"],2,"It is the first point of contact for incidents."],
+[4,"Which wireless security protocol is the WEAKEST?",["WPA2","WEP","WPA3","WPA2-Enterprise"],1,"WEP is easily broken."],
+[4,"Backup restoration should be tested:",["Never","Only after a disaster","Once per decade","Periodically, to verify backups can actually be restored"],3,"An untested backup is not proven."],
+[4,"A major weakness of a reciprocal agreement is that:",["The cost is high","Compatibility and availability may not be guaranteed","It is slow to sign","It needs many staff"],1,"The partner may not have capacity or compatible systems when you need it."],
+[5,"An advantage of symmetric encryption is that it:",["Solves key distribution","Provides non-repudiation","Is faster for large volumes of data","Uses key pairs"],2,"Symmetric is fast but has a key distribution problem."],
+[5,"Hashing provides:",["Confidentiality","Integrity","Availability","User authentication"],1,"A changed hash shows data was altered."],
+[5,"Which of these is a hashing algorithm?",["AES","RSA","3DES","SHA-256"],3,"AES, RSA and 3DES are encryption algorithms."],
+[5,"A certificate authority:",["Encrypts email","Issues and verifies digital certificates","Stores passwords","Blocks malware"],1,"The CA vouches for the identity bound to a public key."],
+[5,"A man-in-the-middle attack is BEST prevented by:",["Backups","Screen locks","TLS with proper certificate validation","Longer passwords"],2,"Validated certificates authenticate the other party."],
+[5,"A denial-of-service attack primarily affects:",["Availability","Confidentiality","Integrity","Non-repudiation"],0,"It makes systems unavailable."],
+[5,"Social engineering is BEST addressed by:",["Larger firewalls","Security awareness training","Faster CPUs","More backups"],1,"It targets people, so people need training."],
+[5,"Which control tracks the state of connections?",["A packet filter that ignores state","A hub","A stateful inspection firewall","A repeater"],2,"Stateful firewalls track connection state."],
+[5,"The purpose of a DMZ is to:",["Store backups","Encrypt data","Speed up traffic","Isolate public-facing servers from the internal network"],3,"A compromise of exposed servers should not reach the internal network."],
+[5,"The purpose of a honeypot is to:",["Attract and study attackers","Block email","Encrypt data","Back up files"],0,"It is a decoy used to observe attacks."],
+[5,"Before a penetration test begins, there must be:",["A surprise for the staff","Written authorization and a defined scope","Employee consent only","No approval"],1,"Authorization and scope protect both parties."],
+[5,"Vulnerability scanning identifies:",["Employee behavior","Fraud","Zero-day attacks only","Known weaknesses in systems"],3,"Scanners look for known vulnerabilities."],
+[5,"The equal error rate of a biometric system is:",["Its maximum cost","Its enrollment time","The point where false acceptance equals false rejection","Its speed"],2,"It is the crossover point, used to compare systems."],
+[5,"Role-based access control (RBAC):",["Eliminates passwords","Simplifies access administration by grouping permissions into roles","Encrypts data","Speeds up the network"],1,"Users get access through roles, which is easier to manage and review."],
+[5,"Periodic user access reviews MOST directly detect:",["Excessive or outdated access (privilege creep)","Malware","Hardware faults","Fraud only"],0,"They find access that no longer matches the job."],
+[5,"The main risk of single sign-on is that:",["Logins are slower","Users need extra passwords","One compromised credential exposes multiple systems","Cost is higher"],2,"One credential becomes the key to everything."],
+[5,"The purpose of data loss prevention (DLP) is to:",["Prevent unauthorized exfiltration of sensitive data","Back up data","Speed up patching","Encrypt hardware"],0,"DLP stops sensitive data leaving the organization."],
+[5,"The BEST control for a BYOD program is:",["Banning all phones","Mobile device management with encryption and remote wipe","Cable locks","Doing nothing"],1,"MDM lets the organization enforce controls on personal devices."],
+[5,"Security logs should be protected from:",["Reading by auditors","Archiving","Modification and deletion","Backup"],2,"Logs lose their value if they can be altered."],
+[5,"A SIEM is used to:",["Encrypt data","Patch systems","Back up files","Correlate and analyze logs to detect security events"],3,"It centralizes and correlates log data."],
+[5,"After an incident is detected and analyzed, the next phase is usually:",["Lessons learned","Preparation","Containment","Recovery"],2,"Contain the damage before eradicating and recovering."],
+[5,"Chain of custody ensures:",["Evidence integrity and admissibility","A faster investigation","Encryption","Backups"],0,"It documents who handled evidence, so it stays credible."],
+[5,"What is the FIRST step in preserving evidence from a computer?",["Run a virus scan on the original","Create a bit-for-bit image and work from the copy","Delete temporary files","Reboot the machine"],1,"Preserve the original and analyze a forensic copy."],
+[5,"A mantrap (turnstile) primarily prevents:",["Malware","SQL injection","Phishing","Piggybacking (tailgating)"],3,"It lets only one person through at a time."],
+[5,"Which fire suppression is generally preferred in a data center?",["Wet-pipe water only","Foam","Dry-pipe sprinklers or a clean-agent gas system","No suppression"],2,"Water in the pipes above equipment is a risk; dry-pipe or gas is safer."],
+[5,"The purpose of data classification is to:",["Apply controls proportionate to sensitivity","Reduce data volume","Speed up systems","Delete data"],0,"Protection should match the value and sensitivity of the data."],
+[5,"The principle of data minimization means:",["Collect everything","Sell the data","Collect only the data necessary for the purpose","Keep data forever"],2,"Collect and keep only what you need."]
+];
+
+var QUESTIONS = RAW.map(function (r, i) {
+  return { n: i + 1, d: r[0], q: r[1], o: r[2], a: r[3], e: r[4] };
+});
+var LETTERS = ["A", "B", "C", "D"];
+
+var app = document.getElementById("app");
+var set = [], pos = 0, picks = [], answered = false;
+
+function esc(s) {
+  return String(s).replace(/[&<>"]/g, function (c) {
+    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+  });
+}
+function count(d) { return QUESTIONS.filter(function (q) { return q.d === d; }).length; }
+
+function home() {
+  var h = '<h1>CISA practice quiz</h1>' +
+    '<p class="muted">150 original questions across the five CISA domains, weighted roughly like the real exam. You get the answer and a short explanation after each question.</p>' +
+    '<div class="domains">' +
+    '<button class="dom" data-d="0"><span><strong>All domains</strong></span><small>' + QUESTIONS.length + ' questions</small></button>';
+  DOMAINS.forEach(function (d) {
+    h += '<button class="dom" data-d="' + d.id + '"><span>Domain ' + d.id + ': ' + esc(d.name) + '</span><small>' + count(d.id) + ' questions</small></button>';
+  });
+  h += '</div>' +
+    '<p class="muted" style="font-size:14px">These are practice questions on the most frequently tested CISA topics, written in CISA style. They are not real exam questions.</p>';
+  app.innerHTML = h;
+  app.querySelectorAll(".dom").forEach(function (b) {
+    b.onclick = function () {
+      var d = +b.getAttribute("data-d");
+      start(d === 0 ? QUESTIONS.slice() : QUESTIONS.filter(function (q) { return q.d === d; }));
+    };
+  });
+  window.scrollTo(0, 0);
+}
+
+function start(list) {
+  set = list; pos = 0; picks = []; answered = false;
+  renderQ();
+}
+
+function renderQ() {
+  var q = set[pos];
+  answered = picks[pos] !== undefined;
+  var pct = (pos / set.length) * 100;
+  var h = '<div class="top"><span>Question ' + (pos + 1) + ' of ' + set.length + '</span><span>Domain ' + q.d + '</span></div>' +
+    '<div class="bar"><i style="width:' + pct + '%"></i></div>' +
+    '<div class="q">' + esc(q.q) + '</div><div class="opts">';
+  q.o.forEach(function (t, i) {
+    h += '<button class="opt" data-i="' + i + '"><span class="l">' + LETTERS[i] + '</span><span>' + esc(t) + '</span></button>';
+  });
+  h += '</div><div id="fb"></div><div class="nav" id="nav"></div>' +
+    '<div class="tools"><button id="quit">Quit to menu</button></div>';
+  app.innerHTML = h;
+  app.querySelectorAll(".opt").forEach(function (b) {
+    b.onclick = function () { choose(+b.getAttribute("data-i")); };
+  });
+  document.getElementById("quit").onclick = home;
+  if (answered) showFeedback();
+  window.scrollTo(0, 0);
+}
+
+function choose(i) {
+  if (answered) return;
+  picks[pos] = i; answered = true;
+  showFeedback();
+}
+
+function showFeedback() {
+  var q = set[pos], p = picks[pos], right = p === q.a;
+  app.querySelectorAll(".opt").forEach(function (b, i) {
+    b.disabled = true;
+    if (i === q.a) b.classList.add("ok");
+    else if (i === p) b.classList.add("bad");
+  });
+  document.getElementById("fb").innerHTML =
+    '<div class="fb" role="status"><strong class="' + (right ? "ok" : "bad") + '">' +
+    (right ? "Correct." : "Not quite. The answer is " + LETTERS[q.a] + ".") + '</strong> ' + esc(q.e) + '</div>';
+  var last = pos === set.length - 1;
+  var nav = document.getElementById("nav");
+  nav.innerHTML = '<button class="btn" id="next">' + (last ? "See results" : "Next question") + '</button>';
+  document.getElementById("next").onclick = function () {
+    if (last) results(); else { pos++; renderQ(); }
+  };
+  document.getElementById("next").focus({ preventScroll: true });
+  nav.scrollIntoView({ block: "nearest", behavior: "smooth" });
+}
+
+function results() {
+  var correct = 0, byD = {}, wrong = [];
+  set.forEach(function (q, i) {
+    byD[q.d] = byD[q.d] || { c: 0, t: 0 };
+    byD[q.d].t++;
+    if (picks[i] === q.a) { correct++; byD[q.d].c++; } else wrong.push({ q: q, p: picks[i] });
+  });
+  var pct = Math.round((correct / set.length) * 100);
+  var h = '<h2>Your result</h2><div class="score">' + pct + '%</div>' +
+    '<p class="muted">' + correct + ' correct out of ' + set.length + '. On the real exam you need a scaled score of 450 out of 800, so use this as a rough guide, not a prediction.</p>';
+  DOMAINS.forEach(function (d) {
+    var s = byD[d.id];
+    if (!s) return;
+    var dp = Math.round((s.c / s.t) * 100);
+    h += '<div class="row"><span>Domain ' + d.id + ': ' + esc(d.name) + '</span><span>' + s.c + '/' + s.t + '</span>' +
+      '<div class="bar"><i style="width:' + dp + '%"></i></div></div>';
+  });
+  h += '<div style="margin-top:20px">';
+  if (wrong.length) h += '<button class="btn" id="retry">Retry the ' + wrong.length + ' you missed</button>';
+  h += '<button class="btn ghost" id="again">Back to menu</button></div>';
+  if (wrong.length) {
+    h += '<h2 style="margin-top:32px">Review your mistakes</h2>';
+    wrong.forEach(function (w) {
+      h += '<div class="miss"><div class="q">' + w.q.n + '. ' + esc(w.q.q) + '</div>' +
+        '<div class="yours">Your answer: ' + LETTERS[w.p] + '. ' + esc(w.q.o[w.p]) + '</div>' +
+        '<div class="right">Correct: ' + LETTERS[w.q.a] + '. ' + esc(w.q.o[w.q.a]) + '</div>' +
+        '<div class="muted" style="margin-top:6px">' + esc(w.q.e) + '</div></div>';
+    });
+  }
+  app.innerHTML = h;
+  var r = document.getElementById("retry");
+  if (r) r.onclick = function () { start(wrong.map(function (w) { return w.q; })); };
+  document.getElementById("again").onclick = home;
+  window.scrollTo(0, 0);
+}
+
+home();
+</script>
+</body>
+</html>
